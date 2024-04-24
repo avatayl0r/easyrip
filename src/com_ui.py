@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QLineEdit, QPushButton, QMessageBox
 from PyQt5.QtGui import QIcon, QPixmap
 
+
 class CommonUI:
     def push_button(self, text, conn) -> QPushButton:
         button = QPushButton(text)
@@ -10,7 +11,6 @@ class CommonUI:
     def line_edit(self, text, conn) -> QLineEdit:
         line_edit = QLineEdit()
         line_edit.setText(text)
-        print(conn)
         line_edit.textEdited.connect(conn)
         return line_edit
 
@@ -23,6 +23,7 @@ class CommonUI:
         msg_box.setWindowTitle("Rip finished!")
         msg_box.setStandardButtons(QMessageBox.Ok)
         return msg_box
+
 
 class UIProperties:
     def get_app_width() -> int:

@@ -29,7 +29,6 @@ class EasyripUI(QDialog):
 
     def setup_ui(self) -> QVBoxLayout:
         main_layout = QVBoxLayout()
-        # main_layout.setMargin(5)
 
         tip = QLabel(
             "Please enter your URL below and press rip when ready to download!")
@@ -71,7 +70,6 @@ class Easyrip:
         self.output_location = f"{self.username}/Downloads/"
 
     def url_changed(self, text) -> None:
-        print(text)
         self.url = text
 
     def rip_from_url(self) -> None:

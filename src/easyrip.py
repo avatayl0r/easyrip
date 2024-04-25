@@ -3,9 +3,12 @@ import os
 import subprocess as subproc
 
 from PyQt5.QtWidgets import QApplication, QMainWindow
-from PyQt5.QtWidgets import QLabel, QVBoxLayout, QDialog, QGroupBox, QWidget, QGridLayout
+from PyQt5.QtWidgets import (
+    QLabel, QVBoxLayout, QDialog, QGroupBox, QWidget, QGridLayout, QMenuBar,
+    QFileDialog)
 
 import com_ui
+import easyrip_config as config
 
 
 class MainWindow(QMainWindow):
@@ -17,7 +20,52 @@ class MainWindow(QMainWindow):
             com_ui.UIProperties.get_app_width(),
             com_ui.UIProperties.get_app_height())
 
-        self.setCentralWidget(EasyripUI())
+        with open(config.APP_STYLE, "r", encoding="UTF-8") as stylesheet:
+            self.setStyleSheet(stylesheet.read())
+        self.easyrip_ui = EasyripUI()
+        self.setMenuBar(self.menu_bar())
+        self.setCentralWidget(self.easyrip_ui)
+
+    def menu_bar(self) -> QMenuBar:
+        menubar = QMenuBar(self)
+
+        file_menu = menubar.addMenu("File")
+
+        output_action = file_menu.addAction("Output Location")
+        output_action.triggered.connect(self.set_output_location)
+
+        exit_action = file_menu.addAction("Exit")
+        exit_action.triggered.connect(self.exit_app)
+
+        help_menu = menubar.addMenu("Help")
+
+        about_action = help_menu.addAction("About")
+        about_action.triggered.connect(self.about_info)
+
+        return menubar
+
+    def set_output_location(self):
+        filepath = QFileDialog.getExistingDirectory(
+            self, "Select Directory")
+
+        if not filepath:
+            return False
+
+        self.easyrip_ui.easyrip_instance.output_location = filepath
+        self.easyrip_ui.current_output.setText(
+            f"Output Location: '{filepath}'")
+
+    def about_info(self):
+        msg_box = com_ui.CommonUI.message_box(
+            self,
+            title = "About Easyrip",
+            text = "Easyrip is a simple video downloader for YouTube, Instagram, etc.",
+            info_text = f"""Version: v{com_ui.UIProperties.get_version()}
+            \nDeveloped by: {com_ui.UIProperties.get_developer_name()}""")
+        msg_box.exec_()
+
+    def exit_app(self):
+        self.close()
 
 
 class EasyripUI(QDialog):
@@ -30,11 +78,20 @@ class EasyripUI(QDialog):
     def setup_ui(self) -> QVBoxLayout:
         main_layout = QVBoxLayout()
 
+        self.current_output = QLabel(f"Output Location: '{self.easyrip_instance.output_location}'")
         tip = QLabel(
             "Please enter your URL below and press rip when ready to download!")
         input_group = self.setup_input_wdgt()
 
-        main_layout.addWidget(tip)
+        text_group = QGroupBox()
+        text_layout = QVBoxLayout()
+
+        text_layout.addWidget(self.current_output)
+        text_layout.addWidget(tip)
+
+        text_group.setLayout(text_layout)
+
+        main_layout.addWidget(text_group)
         main_layout.addWidget(input_group)
 
         return main_layout
@@ -46,7 +103,11 @@ class EasyripUI(QDialog):
         input_layout = QGridLayout()
 
         self.url_entry = com_ui.CommonUI.line_edit(
-            self, "", self.easyrip_instance.url_changed)
+            self,
+            text="",
+            placeholder="Enter URL here...",
+            conn=self.easyrip_instance.url_changed)
+
         button = com_ui.CommonUI.push_button(
             self, "Rip", self.easyrip_instance.rip_from_url)
 
@@ -58,8 +119,12 @@ class EasyripUI(QDialog):
         return input_group
 
     def finished_rip(self) -> None:
-        self.msg_box = com_ui.CommonUI.message_box(self)
-        self.msg_box.exec_()
+        msg_box = com_ui.CommonUI.message_box(
+            self,
+            title = "Finished Rip!",
+            text = "Finished Rip!",
+            info_text = f"""Please see '{self.easyrip_instance.output_location}' for the downloaded file!""")
+        msg_box.exec_()
 
 
 class Easyrip:

@@ -109,7 +109,7 @@ class EasyripUI(QDialog):
             conn=self.easyrip_instance.url_changed)
 
         button = com_ui.CommonUI.push_button(
-            self, "Rip", self.easyrip_instance.rip_from_url)
+            self, "Rip", self.rip_from_url)
 
         input_layout.addWidget(QLabel("URL: "), 0, 0)
         input_layout.addWidget(self.url_entry, 0, 1)
@@ -118,6 +118,20 @@ class EasyripUI(QDialog):
 
         return input_group
 
+    def rip_from_url(self) -> None:
+        if not self.easyrip_instance.check_url():
+            msg_box = com_ui.CommonUI.warning_box(
+                self,
+                title = "Empty URL!",
+                text = "URL is empty!",
+                info_text = "Please enter a URL to rip from!")
+            msg_box.exec_()
+            return False
+
+        result = self.easyrip_instance.rip_from_url()
+        if result:
+            self.finished_rip()
+
     def finished_rip(self) -> None:
         msg_box = com_ui.CommonUI.message_box(
             self,
@@ -125,6 +139,8 @@ class EasyripUI(QDialog):
             text = "Finished Rip!",
             info_text = f"""Please see '{self.easyrip_instance.output_location}' for the downloaded file!""")
         msg_box.exec_()
+        self.url_entry.setText("")
+        self.easyrip_instance.url_changed("")
 
 
 class Easyrip:
@@ -134,16 +150,21 @@ class Easyrip:
         self.url = ""
         self.output_location = f"{self.username}/Downloads/"
 
-    def url_changed(self, text) -> None:
+    def url_changed(self, text) -> str:
         self.url = text
+        return text
 
-    def rip_from_url(self) -> None:
+    def check_url(self) -> bool:
+        if self.url == "":
+            return False
+        return True
+
+    def rip_from_url(self) -> bool:
         cwd = os.getcwd()
         os.chdir(self.output_location)
         subproc.run(["yt-dlp.exe", self.url])
         os.chdir(cwd)
-
-        self.easyrip_ui.finished_rip()
+        return True
 
 
 if __name__ == "__main__":

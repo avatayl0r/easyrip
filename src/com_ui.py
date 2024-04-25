@@ -26,6 +26,16 @@ class CommonUI:
         msg_box.setStandardButtons(QMessageBox.Ok)
         return msg_box
 
+    def warning_box(self, title, text, info_text) -> QMessageBox:
+        msg_box = QMessageBox()
+        msg_box.setWindowTitle(title)
+        msg_box.setIcon(QMessageBox.Warning)
+        msg_box.setText(text)
+        msg_box.setInformativeText(
+            info_text)
+        msg_box.setStandardButtons(QMessageBox.Ok)
+        return msg_box
+
 
 class UIProperties:
     def get_app_width() -> int:
